@@ -1,8 +1,6 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
 import * as Cesium from 'cesium';
 import { onMounted } from 'vue';
-
 onMounted(()=>{
   // const viewer = new Cesium.Viewer('cesiumContainer');
 
@@ -180,7 +178,19 @@ onMounted(()=>{
 console.log('x')
               }
             }else{
+    //           viewer.scene.postRender.addEventListener('yidong',() => {
+    //   let windowCoord = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+    //     scene,
+    //     // Cesium.Cartesian3.fromDegrees(...coord, 0)
+    //     Cesium.Cartesian3(pickObj.id._position._value.x,pickObj.id._position._value.y,pickObj.id._position._value.z)
+    //   );
+    //   let temp = document.getElementById('info')
+    //   let x = windowCoord.x - div.offsetWidth / 2;
+    //   let y = windowCoord.y - div.offsetHeight;
+    //   temp.style.top = position.y - 100 + "px";
+    //   temp.style.left = position.x - 120 + "px";
 
+    // });
     viewer.scene.postRender.removeEventListener(updatePosition);
     console.log(viewer.scene)
 
@@ -192,7 +202,25 @@ console.log('x')
 
       
 
+  // viewer.camera.setView({
+  //   // 设置初始视角
+  //   destination:Cesium.Cartesian3.fromDegrees(113.318977,23.114155,2000),
+  //   // 方向、俯视和仰视视角
+  //   orientation:{
+  //     heading:Cesium.Math.toRadians(90),
+  //     pitch:Cesium.Math.toRadians(-90)
+  //   }
+  // })
 
+  // viewer.camera.setView({
+  //   // 设置初始视角
+  //   destination:new Cesium.Cartesian3(1332761,-4662399,4137888),
+  //   // 方向、俯视和仰视视角
+  //   orientation:{
+  //     heading:0.60,
+  //     pitch:-0.66,
+  //   },
+  // })
   //引入3d模型
   let city = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({url:Cesium.IonResource.fromAssetId(75343)}))
   //引入样式
