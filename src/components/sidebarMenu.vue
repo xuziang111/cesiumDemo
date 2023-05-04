@@ -1,6 +1,6 @@
 <template>
   <div id="sideBar">
-    <el-tree :data="data" :props="props" >
+    <el-tree :data="data" :props="props"  node-key="id" @node-click="handleNodeClick">
       <template #default="{ node }">
         <span class="prefix" :class="{ 'is-leaf': node.isLeaf }"
           >[ElementPlus]</span
@@ -11,36 +11,20 @@
   </div>
   </template>
 <script setup>
-
-
-  
-  // const getKey = (prefix, id) => {
-  //   return `${prefix}-${id}`
-  // }
-  
-  // const createData = (
-  //   maxDeep,
-  //   maxChildren,
-  //   minNodesNumber,
-  //   deep = 1,
-  //   key = 'node'
-  // )=> {
-  //   let id = 0
-  //   return Array.from({ length: minNodesNumber })
-  //     .fill(deep)
-  //     .map(() => {
-  //       const childrenNumber =
-  //         deep === maxDeep ? 0 : Math.round(Math.random() * maxChildren)
-  //       const nodeKey = getKey(key, ++id)
-  //       return {
-  //         id: nodeKey,
-  //         label: nodeKey,
-  //         children: childrenNumber
-  //           ? createData(maxDeep, maxChildren, childrenNumber, deep + 1, nodeKey)
-  //           : undefined,
-  //       }
-  //     })
-  // }
+import { useStore } from 'vuex'
+//使用vuex的store储存空间
+const store = useStore()
+  function handleNodeClick(data){
+    //判断是否已经被选中
+    if(store.id !== data.id){
+      //改变目前选中id
+      store.commit("changeId",data.id)
+      //镜头移动
+      //显示弹框
+      console.log(data.id)
+    }
+    console.log("click")
+  }
   let tempData = [{id:0,label:"监测车",children:[{id:"xnCar1",label:"咸宁车1"},{id:"xnCar2",label:"咸宁车2"},{id:"xnCar3",label:"咸宁车3"}]},
     {id:1,label:"监测站",children:[{id:"xnStation1",label:"咸宁站1"},{id:"xnStation2",label:"咸宁站2"},{id:"xnStation3",label:"咸宁站3"}]},
     {id:2,label:'信号源',children:[{id:"source1",label:"信号源1"},{id:"source2",label:"信号源2"},{id:"source3",label:"信号源3"}]}
