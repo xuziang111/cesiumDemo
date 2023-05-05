@@ -20,6 +20,11 @@ const store = useStore()
       //改变目前选中id
       store.commit("changeId",data.id)
       //镜头移动
+      console.log(viewer)
+      // console.log(store.state.entities[data.id])
+      // console.log(store.state.entities[data.id].postion)
+      // viewer.flyTo(store.state.entities[data.id])
+      store.commit("flyToCar",data.id)
       //显示弹框
       console.log(data.id)
     }

@@ -1,16 +1,19 @@
 <script setup>
 import * as Cesium from 'cesium';
 import { onMounted } from 'vue';
+import { useStore } from 'vuex';
+const store = useStore()
 onMounted(()=>{
   // const viewer = new Cesium.Viewer('cesiumContainer');
 
   //储存弹框位置
   let pickObj = undefined
-
+  //记录实体
+  let entities ={}
   let custom = new Cesium.ArcGisMapServerImageryProvider({
     url:'https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer'
   })
-  let viewer = new Cesium.Viewer('cesiumContainer',{
+  window.viewer = new Cesium.Viewer('cesiumContainer',{
     //设置小部件
     baseLayerPicker:false,
     //左下角仪表器
@@ -79,33 +82,33 @@ onMounted(()=>{
   const _textColor = "rgb(11, 255, 244)";
   let shuj = [
     {
-      id:1,
+      id:"xnCar1",
       name: '汽车1',
       j: 120.5552,
       w: 31.87532,
       img: '/src/assets/1.png'
     },
         {
-          id:2,
+          id:"xnCar2",
           name: '汽车2',
           j: 120.5554,
           w: 31.87632,
           img: './src/assets/2.png'
         },
         {
-          id:3,
+          id:"xnCar3",
           name: '站点3',
           j: 120.55238,
           w: 31.87432,
           img: '/src/assets/3.png'
         },
-        {
-          id:4,
-          name: '站点4',
-          j: 120.55338,
-          w: 31.87732,
-          img: '/src/assets/4.png'
-        },
+        // {
+        //   id:"xnStation1",
+        //   name: '站点4',
+        //   j: 120.55338,
+        //   w: 31.87732,
+        //   img: '/src/assets/4.png'
+        // },
         // {
         //   id:5,
         //   name: '广告牌5',
@@ -128,26 +131,58 @@ onMounted(()=>{
         //   img: '/assets/true.jpg'
         // }
   ]
-  for(let i = 0; i < shuj.length; i++){
-    // 添加实体的api
-    viewer.entities.add({
-      id: shuj[i].id, // id 为唯一的
-      name: shuj[i].name, // 名字
-      position: Cesium.Cartesian3.fromDegrees(shuj[i].j, shuj[i].w), // 广告牌在地图上的位置,@params(经度{Number},维度{Number},高度{Number})
-      billboard: {
-        verticalOrigin: Cesium.VerticalOrigin.BOTTOM, // 广告牌的对齐方式
-        image: shuj[i].img, // 图片需要放在public/assets下
-        width: 18,
-        height: 24,
-      },
-      // 图标下的点 pixelSize为大小
-      point: {
-        pixelSize: 5
-      },
-      // 标签名
-      label: {
+  store.commit("initEntities",shuj)
+//   for(let i = 0; i < shuj.length; i++){
+//     // 添加实体的api
+//     entities[shuj[i].id]=viewer.entities.add({
+//       id: shuj[i].id, // id 为唯一的
+//       name: shuj[i].name, // 名字
+//       position: Cesium.Cartesian3.fromDegrees(shuj[i].j, shuj[i].w), // 广告牌在地图上的位置,@params(经度{Number},维度{Number},高度{Number})
+//       billboard: {
+//         verticalOrigin: Cesium.VerticalOrigin.BOTTOM, // 广告牌的对齐方式
+//         image: shuj[i].img, // 图片需要放在public/assets下
+//         width: 18,
+//         height: 24,
+//       },
+//       // 图标下的点 pixelSize为大小
+//       point: {
+//         pixelSize: 5
+//       },
+//       // 标签名
+//       label: {
+//         // show: false,
+//         text:shuj[i].name,
+//         font: "12px monospace",
+//         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+//         // fillColor: Cesium.Color.LIME,
+//         fillColor: Cesium.Color.fromCssColorString(_textColor),
+//         outlineWidth: 4,
+//         verticalOrigin: Cesium.VerticalOrigin.BOTTOM, // 垂直方向以底部来计算标签的位置
+//         pixelOffset: new Cesium.Cartesian2(0, -25), // 偏移量 文字处于 (1,2) 1、正为右，负为左，2、上为负，下为正
+//         distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0,6000),
+//       },
+//     });
+// console.log(entities[shuj[i].id])
+
+//     // store.commit("changeAllCar",{
+//     //   id:shuj[i].id,
+//     //   entities:entities[shuj[i].id]
+//     // })
+
+//   }
+  store.commit("changeAllCar",entities)
+
+  viewer.entities.add({
+    position:Cesium.Cartesian3.fromDegrees(120.55338, 31.87732),
+    name:'cartest',
+    model:{
+      uri:'/src/assets/car.glb',
+      minimumPixelSize: 128,
+            maximumScale: 4,
+    },
+    label: {
         // show: false,
-        text:shuj[i].name,
+        text:"car1",
         font: "12px monospace",
         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
         // fillColor: Cesium.Color.LIME,
@@ -155,14 +190,22 @@ onMounted(()=>{
         outlineWidth: 4,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM, // 垂直方向以底部来计算标签的位置
         pixelOffset: new Cesium.Cartesian2(0, -25), // 偏移量 文字处于 (1,2) 1、正为右，负为左，2、上为负，下为正
-      },
-    });
-  }
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,//设置在模型上方
+        // eyeOffset :new Cesium.Cartesian3(0.0, 8000000.0, 0.0)
+        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0,6000),//超过一定高度label消失
+      }
+  })
+  // console.log(entities.xnCar2.position)
+  // viewer.flyTo(entities.xnCar2)
+
       // 点击广告牌的事件
       var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
       let leftclick = Cesium.ScreenSpaceEventType.LEFT_CLICK;
       viewer.screenSpaceEventHandler.removeInputAction(leftclick);
-
+      //取消双击模型事件
+      handler.setInputAction(function(movement) {
+    viewer.trackedEntity = undefined;
+}, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
       // 鼠标左键事件
       handler.setInputAction((e) => {
@@ -170,8 +213,9 @@ onMounted(()=>{
             console.log(pickObj);
             // 判断是否点击到地图上的图标
             if(Cesium.defined(pickObj)){
-              if(pickObj.id && pickObj.id instanceof Cesium.Entity){
-                
+              if(pickObj.id && pickObj.id instanceof Cesium.Entity&&store.state.nowId !== pickObj.id){
+                viewer.scene.postRender.removeEventListener(updatePosition);
+                store.commit("changeNowId",pickObj.id)
                 // viewer.trackedEntity = viewer.entities.getById(pickObj.id.id); // 点击实体拉近与实体的距离
                 updatePosition();
                 viewer.scene.postRender.addEventListener(updatePosition);
