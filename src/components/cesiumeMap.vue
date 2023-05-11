@@ -1,6 +1,6 @@
 <script setup>
 import * as Cesium from 'cesium';
-import { onMounted } from 'vue';
+import { onMounted ,ref,watch} from 'vue';
 import { useStore } from 'vuex';
 const store = useStore()
 onMounted(()=>{
@@ -80,181 +80,99 @@ onMounted(()=>{
 
   // 文字颜色
   const _textColor = "rgb(11, 255, 244)";
-  let shuj = [
-    {
-      id:"xnCar1",
-      name: '汽车1',
-      j: 120.5552,
-      w: 31.87532,
-      img: '/src/assets/1.png'
-    },
-        {
-          id:"xnCar2",
-          name: '汽车2',
-          j: 120.5554,
-          w: 31.87632,
-          img: './src/assets/2.png'
-        },
-        {
-          id:"xnCar3",
-          name: '站点3',
-          j: 120.55238,
-          w: 31.87432,
-          img: '/src/assets/3.png'
-        },
-        // {
-        //   id:"xnStation1",
-        //   name: '站点4',
-        //   j: 120.55338,
-        //   w: 31.87732,
-        //   img: '/src/assets/4.png'
-        // },
-        // {
-        //   id:5,
-        //   name: '广告牌5',
-        //   j: 120.55538,
-        //   w: 31.87732,
-        //   img: '/assets/k.jpg'
-        // },
-        // {
-        //   id:6,
-        //   name: '广告牌6',
-        //   j: 120.55538,
-        //   w: 31.87432,
-        //   img: '/assets/Icon_.png'
-        // },
-        // {
-        //   id:7,
-        //   name: '广告牌7',
-        //   j: 120.55438,
-        //   w: 31.8754,
-        //   img: '/assets/true.jpg'
-        // }
-  ]
-  store.commit("initEntities",shuj)
-//   for(let i = 0; i < shuj.length; i++){
-//     // 添加实体的api
-//     entities[shuj[i].id]=viewer.entities.add({
-//       id: shuj[i].id, // id 为唯一的
-//       name: shuj[i].name, // 名字
-//       position: Cesium.Cartesian3.fromDegrees(shuj[i].j, shuj[i].w), // 广告牌在地图上的位置,@params(经度{Number},维度{Number},高度{Number})
-//       billboard: {
-//         verticalOrigin: Cesium.VerticalOrigin.BOTTOM, // 广告牌的对齐方式
-//         image: shuj[i].img, // 图片需要放在public/assets下
-//         width: 18,
-//         height: 24,
-//       },
-//       // 图标下的点 pixelSize为大小
-//       point: {
-//         pixelSize: 5
-//       },
-//       // 标签名
-//       label: {
-//         // show: false,
-//         text:shuj[i].name,
-//         font: "12px monospace",
-//         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-//         // fillColor: Cesium.Color.LIME,
-//         fillColor: Cesium.Color.fromCssColorString(_textColor),
-//         outlineWidth: 4,
-//         verticalOrigin: Cesium.VerticalOrigin.BOTTOM, // 垂直方向以底部来计算标签的位置
-//         pixelOffset: new Cesium.Cartesian2(0, -25), // 偏移量 文字处于 (1,2) 1、正为右，负为左，2、上为负，下为正
-//         distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0,6000),
-//       },
-//     });
-// console.log(entities[shuj[i].id])
 
-//     // store.commit("changeAllCar",{
-//     //   id:shuj[i].id,
-//     //   entities:entities[shuj[i].id]
-//     // })
-
-//   }
+  //初始渲染所有实体
+  store.commit("initEntities2",store.state.entities)
   store.commit("changeAllCar",entities)
-
-  viewer.entities.add({
-    position:Cesium.Cartesian3.fromDegrees(120.55338, 31.87732),
-    name:'cartest',
-    model:{
-      uri:'/src/assets/car.glb',
-      minimumPixelSize: 128,
-            maximumScale: 4,
-    },
-    label: {
-        // show: false,
-        text:"car1",
-        font: "12px monospace",
-        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-        // fillColor: Cesium.Color.LIME,
-        fillColor: Cesium.Color.fromCssColorString(_textColor),
-        outlineWidth: 4,
-        verticalOrigin: Cesium.VerticalOrigin.BOTTOM, // 垂直方向以底部来计算标签的位置
-        pixelOffset: new Cesium.Cartesian2(0, -25), // 偏移量 文字处于 (1,2) 1、正为右，负为左，2、上为负，下为正
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,//设置在模型上方
-        // eyeOffset :new Cesium.Cartesian3(0.0, 8000000.0, 0.0)
-        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0,6000),//超过一定高度label消失
+  let nowId = ref(store.state.nowId)
+  watch(() => store.state.id,(newValue,oldValue)=>{
+    flyToCar2(newValue)
+  },{ deep: true })
+      function flyToCar2(id){ 
+        viewer.scene.postRender.removeEventListener(updatePosition);
+        //随着地图拖动实时更新弹框位置
+        var info = document.getElementById("carState");
+        updatePosition()
+        function updatePosition(){
+          var winpos = viewer.scene.cartesianToCanvasCoordinates(viewer.entities.getById(id).position._value);
+            // 对位置进行定位
+            if(winpos) {
+              info.style.left = (winpos.x).toFixed(0) + 'px';
+              info.style.top = (winpos.y - 120).toFixed(0) + 'px';
+            }
+            info.style.display = 'block'
+        }
+        
+        let carStateClose = document.getElementById("carStateClose");
+        //监听渲染，实时更新弹框位置
+        viewer.scene.postRender.addEventListener(updatePosition)
+        carStateClose.addEventListener('click',function(){
+          viewer.scene.postRender.removeEventListener(updatePosition)
+          info.style.display = 'none';
+        })
+        //通过id获取实例，将镜头转移到实例位置
+        viewer.flyTo(viewer.entities.getById(id),{
+          duration:1,
+          offset:new Cesium.HeadingPitchRange(Cesium.Math.toRadians(0.0),Cesium.Math.toRadians(-45.0),2000)
+        })
+        // viewer.camera.flyTo(state.entities[id].position)
       }
-  })
-  // console.log(entities.xnCar2.position)
-  // viewer.flyTo(entities.xnCar2)
 
-      // 点击广告牌的事件
+      function updatePosition2(id){
+          var winpos = viewer.scene.cartesianToCanvasCoordinates(viewer.entities.getById(id).position._value);
+            // 对位置进行定位
+            if(winpos) {
+              info.style.left = (winpos.x).toFixed(0) + 'px';
+              info.style.top = (winpos.y - 120).toFixed(0) + 'px';
+            }
+            info.style.display = 'block'
+        }
+      // 点击车辆的事件
       var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
       let leftclick = Cesium.ScreenSpaceEventType.LEFT_CLICK;
       viewer.screenSpaceEventHandler.removeInputAction(leftclick);
       //取消双击模型事件
       handler.setInputAction(function(movement) {
-    viewer.trackedEntity = undefined;
-}, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+        viewer.trackedEntity = undefined;
+      }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
       // 鼠标左键事件
       handler.setInputAction((e) => {
+        store.commit("mapClick")
             pickObj = viewer.scene.pick(e.position,3, 3);
             console.log(pickObj);
             // 判断是否点击到地图上的图标
             if(Cesium.defined(pickObj)){
               if(pickObj.id && pickObj.id instanceof Cesium.Entity&&store.state.nowId !== pickObj.id){
                 viewer.scene.postRender.removeEventListener(updatePosition);
+                console.log(store.state.nowId)
                 store.commit("changeNowId",pickObj.id)
-                // viewer.trackedEntity = viewer.entities.getById(pickObj.id.id); // 点击实体拉近与实体的距离
-                updatePosition();
-                viewer.scene.postRender.addEventListener(updatePosition);
-console.log('x')
+                console.log(pickObj.id.id)
+                store.commit("changeId",pickObj.id.id)
+                // updatePosition();
+                // viewer.scene.postRender.addEventListener(updatePosition);
+                console.log('x')
               }
             }else{
-    //           viewer.scene.postRender.addEventListener('yidong',() => {
-    //   let windowCoord = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
-    //     scene,
-    //     // Cesium.Cartesian3.fromDegrees(...coord, 0)
-    //     Cesium.Cartesian3(pickObj.id._position._value.x,pickObj.id._position._value.y,pickObj.id._position._value.z)
-    //   );
-    //   let temp = document.getElementById('info')
-    //   let x = windowCoord.x - div.offsetWidth / 2;
-    //   let y = windowCoord.y - div.offsetHeight;
-    //   temp.style.top = position.y - 100 + "px";
-    //   temp.style.left = position.x - 120 + "px";
-
-    // });
-    viewer.scene.postRender.removeEventListener(updatePosition);
-    console.log(viewer.scene)
-
+              // viewer.scene.postRender.removeEventListener(updatePosition);
               hideInfo()
-            }
+              store.commit("changeNowId",undefined)
+          }
         }, leftclick);
 
+ //随着地图拖动实时更新弹框位置
+ function updatePosition(){
+    console.log(pickObj.id._position._value)
+    var winpos = viewer.scene.cartesianToCanvasCoordinates(pickObj.id._position._value);
+    showInfo(viewer.entities.getById(pickObj.id.id),winpos);
+  }
+  //消除弹框
+  function hideInfo() {
+    var info = document.getElementById("info");
+		info.style.display = 'none';
+    pickObj = undefined
+	}
 
-
-      
-
-  // viewer.camera.setView({
-  //   // 设置初始视角
-  //   destination:Cesium.Cartesian3.fromDegrees(113.318977,23.114155,2000),
-  //   // 方向、俯视和仰视视角
-  //   orientation:{
-  //     heading:Cesium.Math.toRadians(90),
-  //     pitch:Cesium.Math.toRadians(-90)
-  //   }
-  // })
 
   // viewer.camera.setView({
   //   // 设置初始视角
@@ -294,22 +212,6 @@ console.log('x')
 				info.innerHTML = '';
 				info.innerHTML = entity.name;
 				info.style.display = 'block';
-			}
- //随着地图拖动实时更新弹框位置
-function updatePosition(){
-  console.log(pickObj.id._position._value);
-                // text.value = pickObj.id._name
-                // 将地图的经纬度转换成在画布的位置坐标
-                var winpos = viewer.scene.cartesianToCanvasCoordinates(pickObj.id._position._value);
-                // 调用显示的方法
-                showInfo(viewer.entities.getById(pickObj.id.id),winpos);
-}
-//消除弹框
-function hideInfo() {
-        		var info = document.getElementById("info");
-				info.style.display = 'none';
-        pickObj = undefined
-
 			}
 
 })

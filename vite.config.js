@@ -7,8 +7,8 @@ export default defineConfig({
   plugins: [vue(),cesium()],
   server:{
     open: true,
-    host: 'localhost',
-    port: 5174,
+    host: '0.0.0.0',
+    port: 8084,
     https: false,
     hotOnly: false,
     // proxy:{
